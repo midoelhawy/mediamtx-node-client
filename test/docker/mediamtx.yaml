@@ -1,0 +1,28 @@
+
+logLevel: info
+
+api:
+  enabled: true
+  address: 0.0.0.0:8000
+  readTimeout: 10s
+  writeTimeout: 10s
+  username: admin
+  password: adminpass
+
+
+authInternalUsers:
+  - user: basicuser
+    pass: basicpass
+    permissions:
+      - action: publish
+      - action: read
+      - action: playback
+
+server:
+  protocols: [tcp,udp]
+
+rtmp:
+  enabled: yes
+
+rtsp:
+  enabled: yes

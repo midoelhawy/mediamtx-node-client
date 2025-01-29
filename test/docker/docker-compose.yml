@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest-ffmpeg
+    container_name: mediamtx
+    ports:
+      - "1935:1935"   # Porta RTMP
+      - "8554:8554"   # Porta RTSP
+      - "8000:8000"   # Porta delle API REST
+    environment: 
+      - RTSP_PROTOCOLS=tcp
+      - API=true
+      - API_USERNAME=admin     # Username per le API
+      - API_PASSWORD=password  # Password per le API
+    volumes:
+      - ./mediamtx.yaml:/config.yml
