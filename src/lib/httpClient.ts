@@ -22,10 +22,22 @@ export class MediamtxNodeClient {
     });
   }
 
-  async listStreams() {
+  async listStreams(
+    pagination: {
+      page: number; //default 0
+      itemsPerPage: number; //default 0
+    } = {
+      page: 0,
+      itemsPerPage: 10,
+    }
+  ) {
     const response = await this.axiosClient.get<
       MediamtxBaseResponseWithPagination<StreamItem>
-    >("/v3/paths/list");
+    >("/v3/paths/list", {
+      params: {
+        ...pagination,
+      },
+    });
     return response.data;
   }
 
