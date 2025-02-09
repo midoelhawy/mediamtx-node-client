@@ -5,10 +5,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "start": "node dist/index.js",
     "build": "tsc",
-    "test": "mocha",
-    "dev": "ts-node src/index.ts"
+    "build:watch": "tsc -w",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish",
+    "release:beta": "npm version prerelease --preid=beta && npm publish --tag beta",
+    "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha",
+    "release:rc": "npm version prerelease --preid=rc && npm publish --tag rc"
   },
   "keywords": [
     "mediamtx",
@@ -21,14 +25,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.4.0"
+    "axios": "^1.7.9"
   },
   "devDependencies": {
-    "typescript": "^5.2.0",
-    "ts-node": "^10.9.1",
-    "mocha": "^10.0.0",
-    "chai": "^4.3.7",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^20.5.0",
-    "@types/mocha": "^10.0.1"
+    "chai": "^4.3.7",
+    "mocha": "^10.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.0"
   }
 }
