@@ -6,6 +6,11 @@ export interface MediamtxConfig {
     username: string;
     password: string;
   };
+  playbackServerBaseURL?: string;
+  playbackAuth?: {
+    username: string;
+    password: string;
+  };
 }
 
 export interface StreamSource {
@@ -231,4 +236,10 @@ export interface StreamPathConfig {
   runOnUnread?: string;
   runOnRecordSegmentCreate?: string;
   runOnRecordSegmentComplete?: string;
+}
+
+export interface PlaybackItem {
+  start: string;
+  duration: number;
+  url: string;
 }

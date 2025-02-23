@@ -3,6 +3,7 @@ import {
   MediamtxBaseResponseWithPagination,
   MediamtxConfig,
   MediamtxGlobalConfig,
+  PlaybackItem,
   RecordingItem,
   StreamItem,
   StreamPathConfig,
@@ -11,6 +12,7 @@ import {
 export class MediamtxNodeClient {
   config: MediamtxConfig;
   axiosClient: AxiosInstance;
+  playbackAxiosClient: AxiosInstance | undefined;
 
   constructor(config: MediamtxConfig) {
     this.config = config;
@@ -20,6 +22,14 @@ export class MediamtxNodeClient {
       headers: config.headers || {},
       auth: config.auth || undefined,
     });
+    if (config.playbackServerBaseURL) {
+      this.playbackAxiosClient = axios.create({
+        baseURL: config.playbackServerBaseURL,
+        timeout: config.timeout || 5000,
+        headers: config.headers || {},
+        auth: config.playbackAuth || undefined,
+      });
+    }
   }
 
   async listStreams(
@@ -167,6 +177,27 @@ export class MediamtxNodeClient {
   async deleteStreamingPath(name: string) {
     const response = await this.axiosClient.delete<any>(
       `/v3/config/paths/delete/${name}`
+    );
+    return response.data;
+  }
+
+  async getRecordingSegmentationFromPlayBackServerByPath(
+    path: string,
+    start?: Date,
+    end?: Date
+  ) {
+    if (!this.playbackAxiosClient) {
+      throw new Error("No playback server configured");
+    }
+    const response = await this.playbackAxiosClient.get<PlaybackItem[]>(
+      `/list`,
+      {
+        params: {
+          path,
+          start: start?.toISOString(),
+          end: end?.toISOString(),
+        },
+      }
     );
     return response.data;
   }
