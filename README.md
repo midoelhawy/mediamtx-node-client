@@ -1,8 +1,51 @@
 # mediamtx-node-client
 
-`mediamtx-node-client` is a Node.js client library for interacting with the MediaMTX API. It provides various methods to interact with streams, recordings, and configurations, allowing you to manage and automate tasks with ease.  
+`mediamtx-node-client` is a Node.js client library for interacting with the MediaMTX API. It provides various methods to interact with streams, recordings, and configurations, allowing you to manage and automate tasks with ease.
 
-Now, it also includes **Playback Server** support, enabling direct access to audio/video playback links.  
+Now, it also includes **Playback Server** support, enabling direct access to audio/video playback links. Furthermore, the library now supports **persistent configuration** saving via YAML files. This allows your MediaMTX configuration to be saved and reused, ensuring that your server setup remains consistent across restarts.
+
+## Persistent Configuration
+
+The client can now persist its configuration by saving it to a YAML file. The configuration can be updated automatically every time an API change is made. To enable this feature, you need to pass the `persistentMediaMtxConfig` option when initializing the client.
+
+### Configuration Options
+
+```javascript
+const mediaMtxClient = new MediamtxNodeClient({
+  baseURL: "http://mymediamtxserver:9997/",
+  playbackServerBaseURL: "http://mymediamtxserver:9996/",
+  auth: {
+    username: "user",
+    password: "-01",
+  },
+  persistentMediaMtxConfig: {
+    saveAsUniqueFile: true,
+    saveGlobalConfig: true,
+    outputFilePath: "/tmp/mediamtx.yml",
+    savePathsConfig: true,
+    ignoreRpiCamera: true,
+  }
+});
+```
+
+The following options are available for the persistent configuration:
+
+- `saveAsUniqueFile`: Set to `true` to save the configuration to a unique file.
+- `saveGlobalConfig`: Set to `true` to save the global configuration to a YAML file.
+- `outputFilePath`: The path where the YAML file will be saved.
+- `savePathsConfig`: Set to `true` to save the streaming paths configuration.
+- `ignoreRpiCamera`: Set to `true` to ignore the default configuration for Raspberry Pi cameras.
+
+Alternatively, you can specify separate files for global config and paths config:
+
+- `globalConfigOutputFilePath`: Path for saving the global configuration.
+- `pathsOutputFilePath`: Path for saving the streaming paths configuration.
+
+### How It Works
+
+Whenever the configuration is modified via the API, the client will automatically update the YAML file(s) with the latest configuration, ensuring that changes are preserved even after a server restart.
+
+To restart MediaMTX with the new configuration, simply use the saved YAML files in your MediaMTX server setup.
 
 ## Installation  
 
@@ -30,6 +73,13 @@ const mediaMtxClient = new MediamtxNodeClient({
     username: "user",
     password: "-01",
   },
+  persistentMediaMtxConfig: {
+    saveAsUniqueFile: true,
+    saveGlobalConfig: true,
+    outputFilePath: "/tmp/mediamtx.yml",
+    savePathsConfig: true,
+    ignoreRpiCamera: true,
+  }
 });
 ```
 
@@ -210,6 +260,13 @@ import { MediamtxNodeClient } from "mediamtx-node-client";
       username: "user",
       password: "-01",
     },
+    persistentMediaMtxConfig: {
+      saveAsUniqueFile: true,
+      saveGlobalConfig: true,
+      outputFilePath: "/tmp/mediamtx.yml",
+      savePathsConfig: true,
+      ignoreRpiCamera: true,
+    }
   });
 
   const recordingList = await mediaMtxClient.recordingList();
@@ -262,5 +319,4 @@ import { MediamtxNodeClient } from "mediamtx-node-client";
 
   console.log(playbackSegments);
 })();
-```
-
+``` 
