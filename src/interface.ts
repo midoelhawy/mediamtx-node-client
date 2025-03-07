@@ -11,6 +11,7 @@ export interface MediamtxConfig {
     username: string;
     password: string;
   };
+  persistentMediaMtxConfig?: SaveConfigAsYmlOptions;
 }
 
 export interface StreamSource {
@@ -243,3 +244,35 @@ export interface PlaybackItem {
   duration: number;
   url: string;
 }
+export type SaveConfigAsYmlOptions =
+  | {
+      saveGlobalConfig?: boolean;
+      savePathsConfig?: boolean;
+      saveAsUniqueFile: true;
+      outputFilePath: string;
+      ignoreRpiCamera?: boolean; // ignore all default config for Raspberry camera
+    }
+  | {
+      saveGlobalConfig: true;
+      savePathsConfig?: false;
+      saveAsUniqueFile?: false;
+      //pathsOutputFilePath?: string;
+      globalConfigOutputFilePath: string;
+      ignoreRpiCamera?: boolean; // ignore all default config for Raspberry camera
+    }
+  | {
+      saveGlobalConfig?: false;
+      savePathsConfig: true;
+      saveAsUniqueFile?: false;
+      pathsOutputFilePath: string;
+      ignoreRpiCamera?: boolean; // ignore all default config for Raspberry camera
+      //globalConfigOutputFilePath?: string;
+    }
+  | {
+      saveGlobalConfig: true;
+      savePathsConfig: true;
+      saveAsUniqueFile?: false;
+      pathsOutputFilePath: string;
+      globalConfigOutputFilePath: string;
+      ignoreRpiCamera?: boolean; // ignore all default config for Raspberry camera
+    };

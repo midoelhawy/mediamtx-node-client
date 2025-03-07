@@ -1,19 +1,22 @@
 import axios, { AxiosInstance } from "axios";
+import YAML from "yaml";
 import {
   MediamtxBaseResponseWithPagination,
   MediamtxConfig,
   MediamtxGlobalConfig,
   PlaybackItem,
   RecordingItem,
+  SaveConfigAsYmlOptions,
   StreamItem,
   StreamPathConfig,
 } from "../interface";
+
+import fs from "fs/promises";
 
 export class MediamtxNodeClient {
   config: MediamtxConfig;
   axiosClient: AxiosInstance;
   playbackAxiosClient: AxiosInstance | undefined;
-
   constructor(config: MediamtxConfig) {
     this.config = config;
     this.axiosClient = axios.create({
@@ -114,6 +117,11 @@ export class MediamtxNodeClient {
       `/v3/config/global/get`,
       patch
     );
+
+    if (this.config.persistentMediaMtxConfig) {
+      await this.saveConfigAsYml(this.config.persistentMediaMtxConfig);
+    }
+
     return response.data;
   }
 
@@ -129,6 +137,11 @@ export class MediamtxNodeClient {
       `/v3/config/pathdefaults/patch`,
       patch
     );
+
+    if (this.config.persistentMediaMtxConfig) {
+      await this.saveConfigAsYml(this.config.persistentMediaMtxConfig);
+    }
+
     return response.data;
   }
 
@@ -163,6 +176,11 @@ export class MediamtxNodeClient {
       `/v3/config/paths/add/${name}`,
       body
     );
+
+    if (this.config.persistentMediaMtxConfig) {
+      await this.saveConfigAsYml(this.config.persistentMediaMtxConfig);
+    }
+
     return response.data;
   }
 
@@ -171,6 +189,11 @@ export class MediamtxNodeClient {
       `/v3/config/paths/patch/${name}`,
       body
     );
+
+    if (this.config.persistentMediaMtxConfig) {
+      await this.saveConfigAsYml(this.config.persistentMediaMtxConfig);
+    }
+
     return response.data;
   }
 
@@ -178,6 +201,11 @@ export class MediamtxNodeClient {
     const response = await this.axiosClient.delete<any>(
       `/v3/config/paths/delete/${name}`
     );
+
+    if (this.config.persistentMediaMtxConfig) {
+      await this.saveConfigAsYml(this.config.persistentMediaMtxConfig);
+    }
+
     return response.data;
   }
 
@@ -200,5 +228,93 @@ export class MediamtxNodeClient {
       }
     );
     return response.data;
+  }
+
+  async getGlobalConfigAsYML() {
+    const globalConfig = await this.getGlobalConfig();
+    const yml = this.objectToYaml(globalConfig);
+    return yml;
+  }
+
+  private objectToYaml(data: any) {
+    return data ? YAML.stringify(data) : "";
+  }
+
+  async getPathsConfigAsYML(ignoreRpiCamera: boolean = false) {
+    const pathsConfigs = (await this.getAllPathsConfigurations()).items || [];
+
+    if (ignoreRpiCamera) {
+      for (const pathConfig of pathsConfigs) {
+        for (const key of Object.keys(pathConfig)) {
+          if (key.startsWith("rpiCamera")) {
+            // @ts-ignore
+            delete pathConfig[key];
+          }
+        }
+      }
+    }
+
+    const yml = this.objectToYaml(pathsConfigs);
+    return yml;
+  }
+
+  async saveConfigAsYml(options?: SaveConfigAsYmlOptions) {
+    console.log("Saving config as yml");
+    options = options || this.config.persistentMediaMtxConfig;
+
+    if (!options) {
+      throw new Error("No options provided");
+    }
+
+    if (!options.savePathsConfig && !options.saveGlobalConfig) {
+      throw new Error(
+        "At least one of savePathsConfig or saveGlobalConfig must be true"
+      );
+    }
+
+    const [globalConfigYML, pathsConfigYML] = await Promise.all([
+      options.saveGlobalConfig ? this.getGlobalConfigAsYML() : "",
+      options.savePathsConfig
+        ? this.getPathsConfigAsYML(options.ignoreRpiCamera)
+        : "",
+    ]);
+
+    if (options.saveAsUniqueFile) {
+      await fs.writeFile(
+        options.outputFilePath,
+        `${globalConfigYML}\n\n\n${pathsConfigYML}`,
+        "utf-8"
+      );
+      console.log(`Config saved as yml in ${options.outputFilePath}`);
+      return;
+    }
+
+    if (options.savePathsConfig && !options.pathsOutputFilePath) {
+      throw new Error("pathsOutputFilePath is required");
+    }
+    if (options.saveGlobalConfig && !options.globalConfigOutputFilePath) {
+      throw new Error("PathOutputFilePath is required");
+    }
+
+    await Promise.all([
+      options.savePathsConfig &&
+        fs.writeFile(options.pathsOutputFilePath, pathsConfigYML, "utf-8"),
+      options.saveGlobalConfig &&
+        fs.writeFile(
+          options.globalConfigOutputFilePath,
+          globalConfigYML,
+          "utf-8"
+        ),
+    ]);
+    if (options.savePathsConfig) {
+      console.log(
+        `Paths config saved as yml in ${options.pathsOutputFilePath}`
+      );
+    }
+    if (options.saveGlobalConfig) {
+      console.log(
+        `Global config saved as yml in ${options.globalConfigOutputFilePath}`
+      );
+    }
   }
 }
