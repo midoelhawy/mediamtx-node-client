@@ -254,7 +254,19 @@ export class MediamtxNodeClient {
       }
     }
 
-    const yml = this.objectToYaml({ paths: pathsConfigs });
+    const finalPaths: {
+      paths: {
+        [key: string]: StreamPathConfig;
+      };
+    } = {
+      paths: {},
+    };
+
+    for (const pathConfig of pathsConfigs) {
+      finalPaths.paths[pathConfig.name!] = pathConfig;
+    }
+
+    const yml = this.objectToYaml(finalPaths);
     return yml;
   }
 
