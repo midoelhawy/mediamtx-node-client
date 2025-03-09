@@ -254,7 +254,7 @@ export class MediamtxNodeClient {
       }
     }
 
-    const yml = this.objectToYaml(pathsConfigs);
+    const yml = this.objectToYaml({ paths: pathsConfigs });
     return yml;
   }
 
