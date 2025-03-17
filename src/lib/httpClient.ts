@@ -237,7 +237,7 @@ export class MediamtxNodeClient {
   }
 
   private objectToYaml(data: any) {
-    return data ? YAML.stringify(data) : "";
+    return data ? YAML.stringify(data, {}) : "";
   }
 
   async getPathsConfigAsYML(ignoreRpiCamera: boolean = false) {
@@ -263,11 +263,20 @@ export class MediamtxNodeClient {
     };
 
     for (const pathConfig of pathsConfigs) {
-      finalPaths.paths[pathConfig.name!] = pathConfig;
+      if (pathConfig.name) {
+        pathConfig.name = `'---${pathConfig.name}---'`;
+      }
+      finalPaths.paths[`${pathConfig.name!}`] = pathConfig;
     }
 
     const yml = this.objectToYaml(finalPaths);
-    return yml;
+    const ymlCleaned = this.cleanRegexData(yml);
+    return ymlCleaned;
+  }
+
+  cleanRegexData(yamlInput: string) {
+    const regex = /"'---([^']*)---'"/g;
+    return yamlInput.replace(regex, (_, match) => `"${match}"`);
   }
 
   async saveConfigAsYml(options?: SaveConfigAsYmlOptions) {
