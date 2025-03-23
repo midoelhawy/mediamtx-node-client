@@ -264,9 +264,9 @@ export class MediamtxNodeClient {
 
     for (const pathConfig of pathsConfigs) {
       if (pathConfig.name) {
-        pathConfig.name = `'---${pathConfig.name}---'`;
+        pathConfig.name = `-----${pathConfig.name}-----`;
       }
-      finalPaths.paths[`${pathConfig.name!}`] = pathConfig;
+      finalPaths.paths[pathConfig.name!] = pathConfig;
     }
 
     const yml = this.objectToYaml(finalPaths);
@@ -275,7 +275,7 @@ export class MediamtxNodeClient {
   }
 
   cleanRegexData(yamlInput: string) {
-    const regex = /"'---([^']*)---'"/g;
+    const regex = /-----(.*?)-----/g;
     return yamlInput.replace(regex, (_, match) => `"${match}"`);
   }
 
