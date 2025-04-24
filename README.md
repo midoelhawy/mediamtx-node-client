@@ -247,6 +247,16 @@ const deletedPath = await mediaMtxClient.deleteStreamingPath("/my-stream");
 console.log(deletedPath);
 ```
 
+#### `getRecordingSegmentationAndSaveToFolder(
+    name: string,
+    outputDir: string, // the directory will the videos will be saved
+    start?: Date,
+    end?: Date
+  )`
+Save video to file system from recording
+
+
+
 ## Example Code  
 
 ```javascript

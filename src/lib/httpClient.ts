@@ -12,6 +12,9 @@ import {
 } from "../interface";
 
 import fs from "fs/promises";
+import path from "path";
+import {createWriteStream} from "fs";
+import { formatDateToNumericString } from "./utils";
 
 export class MediamtxNodeClient {
   config: MediamtxConfig;
@@ -228,6 +231,60 @@ export class MediamtxNodeClient {
       }
     );
     return response.data;
+  }
+
+
+  async getRecordingSegmentationAndSaveToFolder(
+    pathStr: string,
+    outputDir: string,
+    start?: Date,
+    end?: Date
+  ) {
+    if (!this.playbackAxiosClient) {
+      throw new Error("No playback server configured");
+    }
+  
+    const response = await this.playbackAxiosClient.get<PlaybackItem[]>(
+      `/list`,
+      {
+        params: {
+          path: pathStr,
+          start: start?.toISOString(),
+          end: end?.toISOString(),
+        },
+      }
+    );
+  
+    const segments = response.data;
+    const savedSegments = [];
+  
+    for (const segment of segments) {
+      const startTimestamp = new Date(segment.start);
+      const endTimestamp = new Date(startTimestamp.getTime() + segment.duration * 1000);
+      const filename = `${formatDateToNumericString(startTimestamp)}-${formatDateToNumericString(endTimestamp)}.mp4`;
+      const filePath = path.join(outputDir, filename);
+  
+      const videoResponse = await axios.get(segment.url, {
+        responseType: "stream",
+      });
+  
+      const writer = createWriteStream(filePath);
+      videoResponse.data.pipe(writer);
+  
+      await new Promise<void>((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", reject);
+      });
+  
+      savedSegments.push({
+        start: startTimestamp.toISOString(),
+        end: endTimestamp.toISOString(),
+        duration: segment.duration,
+        path: filePath,
+      });
+    }
+  
+    return savedSegments;
   }
 
   async getGlobalConfigAsYML() {
